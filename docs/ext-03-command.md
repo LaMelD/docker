@@ -1,0 +1,195 @@
+# 부록 C : 주요 명령어 정리
+
+## 1. 도커 명령어
+
+- `$ docker image build [options] (Dockerfile경로 | URL)`
+    - Dockerfile로부터 도커 이미지를 빌드
+- `$ docker search [options] 키워드`
+    - 도커 허브에서 제공되는 도커 이미지를 검색
+- `$ docker image pull [options] 리포지토리명[:태그명]`
+    - 도커 레지스트리에서 도커 이미지를 다운로드
+- `$ docker image ls [options] [리포지토리명[:태그명]]`
+    - 해당 도커 호스트가 보유한 도커 이미지의 목록을 출력
+- `$ docker image tag 이미지원래이름[:태그] 이미지새이름[:태그]`
+    - 도커 이미지 태그를 생성
+- `$ docker image push [options] 리포지토리명[:태그명]`
+    - 도커 레지스트리에 도커 이미지를 전송해 등록
+- `$ docker container run [options] 이미지명[:태그명] [명령] [명령인자 ...]`
+    - 도커 컨테이너를 새로 실행
+- `$ docker container ls [options]`
+    - dockerd가 보유한 컨테이너 목록 출력
+- `$ docker container stop [options] (컨테이너ID | 컨테이너명)`
+    - 실행중인 컨테이너를 정지
+- `$ docker container restart [options] (컨테이너ID | 컨테이너명)`
+    - 정지한 컨테이너를 다시 실행
+- `$ docker container rm [options] (컨테이너ID | 컨테이너명)`
+    - 컨테이너를 디스크에서 삭제
+- `$ docker container logs [options] (컨테이너ID | 컨테이너명)`
+    - 컨테이너의 로그(표준 출력)를 화면에 출력
+- `$ docker container exec -it [options] (컨테이너ID | 컨테이너명) 컨테이너에서_실행할_명령`
+    - 실행 중인 컨테이너에서 명령어를 실행
+- `$ docker container cp [options] (컨테이너ID | 컨테이너명):원본파일 대상파일`
+    - 컨테이너에서 호스트로 파일 및 디렉토리 복사
+- `$ docker container cp [options] 호스트_원본파일 (컨테이너ID | 컨테이너명):대상파일`
+    - 호스트에서 컨테이너로 파일 및 디렉토리 복사
+- `$ docker container prune [options]`
+    - 정지 상태인 모든 컨테이너를 디스크에서 삭제
+- `$ docker image prune [options]`
+    - 사용하지 않는 모든 도커 이미지를 디스크에서 삭제
+- `$ docker system prune [options]`
+    - 사용하지 않는 컨테이너 및 이미지, 볼륨, 네트워크 등 모든 도커 리소스를 일괄 삭제
+- `$ docker container stats [options]`
+    - 시스템 리소스 사용 현황을 컨테이너 단위로 실시간 출력
+
+## 2. Dockerfile 인스트럭션
+
+- `FROM`
+    - 빌드하는 이미지의 기반 이미지를 지정
+- `RUN`
+    - 이미지를 빌드할 때 컨테이너에서 실행할 명령어를 정의
+- `COPY`
+    - 호스트에서 컨테이너로 파일 및 디렉토리를 복사
+- `ADD`
+    - COPY의 기능에 압축 파일 자동 해제 및 URL로부터 컨테이너에 파일 및 디렉토리 추가
+    - 운영 체제를 담은 기반 이미지를 만들 때처럼 특수한 경우에 활용
+- `CMD`
+    - 컨테이너에서 포어그라운드로 실행할 명령어 정의
+- `ENTRYPOINT`
+    - 컨테이너를 실행 가능 파일로 사용할 때 정의하는 명령
+    - CMD와 ENTRYPOINT를 함께 사용할 수 있음
+- `ARG`
+    - `docker image build`를 실행할 때 사용하는 변수
+- `ENV`
+    - 컨테이너 안의 환경 변수를 정의
+- `EXPOSE`
+    - 컨테이너가 노출하는 포트
+- `VOLUME`
+    - 호스트나 다른 컨테이너에서 마운트할 수 있는 포인트 생성
+- `LABEL`
+    - 이미지에 추가하는 메타 데이터
+- `STOPSIGNAL`
+    - 컨테이너에 전달되면 컨테이너를 종료하는 시스템 시그널 설정
+- `HEALTHCHECK`
+    - 컨테이너 안에서 명령을 실행하고 그 결과를 헬스 체크에 사용
+- `USER`
+    - 컨테이너 실행 시 컨테이너 사용자. 이미지 빌드 시 USER 정의 뒤에 나오는 RUN 인스트럭셔도 해당 사용자 권한으로 실행
+- `WORKDIR`
+    - 컨테이너의 작업 디렉토리
+- `ONBUILD`
+    - 컨테이너 안에서 실행되는 명령을 정의
+    - 이미지에서는 실행되지 않음
+    - ONBUILD를 정의한 이미지를 기반 이미지로 삼아 다른 이미지를 빌드할 때 실행
+
+## 3. 도커 컴포즈 명령어
+
+- `$ docker-compose build [options]`
+    - 컴포즈로 관리하는 서비스를 이미지로부터 빌드
+- `$ docker-compose create [options]`
+    - 컴포즈로 관리하는 서비스를 생성
+- `$ docker-compose start [options]`
+    - 컴포즈로 관리하는 서비스를 시작
+- `$ docker-compose up [options]`
+    - 컴포즈로 관리하는 서비스를 생성 및 시작
+- `$ docker-compose stop [options]`
+    - 컴포즈로 실행 중인 서비스를 정지
+- `$ docker-compose rm [options]`
+    - 컴포즈로 실행 중인 서비스를 삭제
+- `$ docker-compose down [options]`
+    - 컴포즈로 실행 중인 서비스를 정지 및 삭제
+- `$ docker-compose ps [options]`
+    - 컴포즈로 실행 중인 컨테이너의 목록을 출력
+- `$ docker-compose logs [options]`
+    - 컴포즈로 실행 중인 컨테이너의 로그를 요약해 출력
+
+## 4. 도커 스웜/스택 명령어
+
+- `$ docker swarm init [options]`
+    - 스웜 클러스터를 초기화
+- `$ docker swarm join [options] manager 호스트:포트`
+    - 스웜 클러스터에 노드 혹은 매니저를 추가
+- `$ docker swarm leave [options]`
+    - 스웜 클러스터에서 노드 혹은 매니저를 제거
+- `$ docker stack deploy [options] 스택명`
+    - 스웜 클러스터에 스택을 배포
+- `$ docker stack (ls | list) [options]`
+    - 스웜 클러스터에 배포된 스택 목록을 출력
+- `$ docker stack ps [options] 스택명`
+    - 스택 안에서 실행 중인 태스크를 출력
+- `$ docker stack (rm | remove | down) [options] 스택명`
+    - 스웜 클러스터에서 스택을 제거
+- `$ docker stack services [options] 스택명`
+    - 스택에 포함된 서비스 목록을 출력
+
+## 5. 헬름 명령어
+
+- `$ helm init [options]`
+    - 헬름을 초기화해 대상 쿠버네티스 클러스터를 배포할 수 있는 상태로 만든다.
+    - 옵션
+        - `--service-account` : 틸러가 사용할 서비스 계정
+        - `--node-selector` : 틸러를 배포할 노드의 레이블
+        - `--upgrade` : 틸러 업그레이드
+        - `--history-max` : 리소스 하나당 유지할 히스토리 최대 수
+- `$ helm version`
+    - 헬름 명령행 도구와 틸러의 버전을 확인한다.
+- `$ helm create 차트명`
+    - 헬름 차트의 템플릿을 생성한다.
+- `$ helm lint 차트명`
+    - 생성된 차트 템플릿이나 Chart.yaml, values.yaml 파일이 문법에 어긋나지 않는지 검사한다.
+- `$ helm package [options] 차트_경로`
+    - 차트를 압축 파일로 패키징한다.
+    - 옵션
+        - `--version` : 차트의 버전
+        - `-d, --destination` : 압축 파일을 출력할 디렉토리
+- `$ helm repo list`
+    - 헬름 명령행 도구로 사용할 수 있는 차트 리포지토리 목록을 출력한다.
+- `$ helm repo add 리포지토리명 리포지토리URL`
+    - 차트 리포지토리를 추가한다.
+- `$ helm repo remove 리포지토리명`
+    - 현재 등록된 차트 리포지토리를 삭제한다.
+- `$ helm repo update`
+    - 등록된 차트 리포지토리에서 최신 차트 정보를 받아온다.
+    - 반아온 정보는 로컬에 캐시되어 `helm search` 명령 등에 사용된다.
+- `$ helm search [검색키워드] [options]`
+    - 등록된 차트 리포지토리에서 원하는 차트 정보를 검색한다.
+    - 옵션
+        - `-r, --regexp` : 키워드에 정규 표현식을 사용
+        - `-l, --version` : 리포지토리에 등록된 버전 목록을 출력
+- `$ helm fetch [options] 차트URL | 차트 리포지토리나 차트명`
+    - 차트 리포지토리에서 패키지를 내려받는다.
+    - 옵션
+        - `--version` : 내려받을 차트의 버전
+    - 사용 예시
+        - `$ helm fetch stable/redis`
+        - `$ helm fetch stable/redis --version 3.6.0`
+- `$ helm serve [options]`
+    - 로컬 리포지토리로 사용할 웹 서버를 시작한다.
+    - 옵션
+        - `--address` : 서버가 개방할 주소(기본값은 127.0.0.1)
+        - `--repo-path` : 차트 리포지토리가 될 로컬 디렉터리 경로
+- `$ helm install 차트리포지토리/차트명 [optinos]`
+    - 차트를 이용해 어플리케이션을 설치한다.
+    - 옵션
+        - `--dry-run` : 설치 시뮬레이션을 수행한다.
+        - `--name` : 릴리즈명(미지정 시 자동 생성)
+        - `-f, --value` : YAML 파일의 경로 또는 URL(여러 개 지정 가능)
+        - `--version` : 차트의 버전 지정
+- `$ helm upgrade 릴리즈명 차트리포지토리명/차트명 [options]`
+    - 기존에 설치된 릴리즈를 업데이트한다.
+    - 옵션
+        - `-f, --values` : YAML 파일의 경로 혹은 URL(여러 개 지정 가능)
+        - `--version` : 차트의 버전
+        - `--install` : 릴리즈가 존재하지 않을 경우 새로 설치를 진행
+        - `--reuse-values` : 마지막 릴리즈의 값을 재사용하고 새로운 값을 merge
+- `$ helm list`
+    - 설치된 릴리즈의 목록을 확인한다.
+    - 옵션
+        - `--deleted` : 삭제된 릴리즈를 목록에 포함
+        - `--namespace` : 지정한 네임스페이스의 릴리즈만을 확인
+- `$ helm get [options] 릴리즈명`
+    - 설치된 릴리즈의 상세 정보를 YAML 포맷으로 출력한다.
+    - 옵션
+        - `--version` : 릴리즈의 버전
+- `$ helm delete [options] 릴리즈명`
+    - 설치된 릴리즈를 삭제한다.
+    - 옵션
+        - `purge` : 릴리즈를 삭제하고 릴리즈명을 해제한다.
