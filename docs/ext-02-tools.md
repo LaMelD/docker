@@ -54,7 +54,7 @@
         - docker image pull 명령은 기본적으로 HTTPS를 통해 레지스트리에 접근하기 때문에 Registry 역시 HTTPS를 활성화 하지 않으면 오류가 발생한다.
         - 외부에서 접근이 불가능한 내부 네트워크 안에서만 이미지가 전송된다면 굳이 HTTPS를 적용할 필요가 없다.
             - docker image pull 명령을 실행하는 쪽의 /etc/docker/daemon.json 파일에 HTTP 통신을 허용한다.
-            - `Insecure registies`에 값을 추가한다.
+            - `Insecure registries`에 값을 추가한다.
 
 ## 2. 도커와 CI/CD 서비스 연동
 
@@ -169,3 +169,74 @@
             ```
 
 ## 3. ECS에서 AWS Fargate를 이용한 컨테이너 오케스트레이션
+
+- ECS - Elastic Container Service
+    - AWS는 지금까지 독자적인 컨테이너 오케스트레이션 서비스 ECS를 제공해왔다.
+    - ESC는 서버 여러대를 이용해 컨테이너 오케스트레이션을 구현하는 방식이다.
+    - ALB라는 AWS 서비스와 매끄럽게 연동된다.
+        - ALB - Application Load Balancer
+    - ECS는 최초 도입이 쿠버네티스보다 쉽기 때문에 프로젝트 규모와 무관하게 널리 사용된다.
+        - 넷플릭스에서 대규모로 운영한 실적이 있다.
+- AWS Fargate
+    - 개발자가 서버나 클러스터를 직접 관리하지 않고 컨테이너를 실행하는 기술
+    - ECS나 EKS에서는 서버관리, 클러스터 프로비저닝 등을 담당하는 서비스이다.
+    - 컨테이너 오케스트레이션부터 서버 및 클러스터 관리에 이르기까지 가장 손이 많이 가는 작업을 제거했다는 점에서 획기적이라 할 수 있다.
+    - AWS Fargate는 AWS Lambda의 뒤를 잇는 차세대 서버리스 기술로서도 주목받고 있다.
+        - Lambda는 장시간 실행되는 배치 어플리케이션에는 적합하지 않은데, ECS는 이러한 약점을 보완할 수 있다.
+        - AWS Fargate는 서버 인스턴스를 신경 쓰지 않고도 간단히 컨테이너 오케스트레이션을 실현할 수 있으므로 컨테이너 기술 및 서버리스 기술 양쪽에서 새로운 트랜드가 될 것이다.
+- Fargate로 ECS 클러스터 구축
+    - AWS console에서 ECS를 선택하면 Fargate 마법사 화면이 나타난다.
+    - 시작을 눌러서 설정을 시작한다.
+    - 1단계 : 컨테이너 및 작업
+        - nginx를 선택한다.
+    - 2단계 : 서비스
+        - 로드 밸런서 유형을 Application Load Balancer를 선택한다.
+    - 3단계 : 클러스터
+        - Cluster 이름을 설정한다.
+        - 필자는 joon으로 하겠다.
+    - 4단계 : 검토
+        - 지금까지의 내용을 검토한 뒤에 생성을 누른다.
+    - 생성 뒤 확인
+        - ECS 관련 리소스가 수 분 만에 생성된다.
+    - 생성된 nginx에 접속
+        - 생성한 뒤 로드 밸러서를 확인한다.
+        - ECS 클러스터에 배포된 컨테이너는 모두 ALB라는 로드 밸런서를 통해 접근하므로 지금 만든 ALB의 DNS name을 복사한다.
+        - 웹 브라우저에서 'http://복사한도메인'에 접근하면 nginx의 welcome 화면을 볼 수 있다.
+- ECS를 조작해 어플리케이션 배포하기
+    - ECS 리소스
+        - (작음) Container Definition - Task Definition - Service - Cluster (큼)
+        - Container Definition : 배포되는 각 컨테이너의 정의
+        - Task Definition : 컨테이너의 집합인 Task의 정의
+        - 쿠버네티스 파드의 개념이 두 단계로 나뉘어 있다고 생각하면 된다.
+    - Task Definition 생성
+        - 작업 정의 - 새로운 작업 정의 작성
+        - FARGATE를 선택하고 다음을 누른다.
+        - 테스크 정의 이름은 echo-task로 한다.
+        - 네트워크 모드는 awsvpc를 선택하여 내부 IP(private)만 부여한다.
+        - CPU 리소스
+            - memory : 0.5GB
+            - CPU : 0.25vCPU
+        - 컨테이너 정의
+            - echo
+                - 이름 : echo
+                - 이미지 : stormcat24/echo:latest
+                - 포트 맵핑 : 8080
+            - nginx
+                - 이름 : nginx
+                - 이미지 : stormcat24/nginx-proxy:latest
+                - 포트 맵핑 : 80
+                - 환경변수
+                    - BACKEND_HOST : value : localhost:8080
+    - 서비스 수정
+        - 새 배포 적용을 체크한다.
+        - 작업 개수는 1로 한다.
+        - 이후 화면은 수정 없이 다음을 클릭한다.
+        - Service 수정이 끝나면 이미 배포된 태스크가 정지되며 echo-task:1 태스크가 하나 배포된다.
+        - 태스크 상세 정보를 확인하면 echo와 nginx 컨테이너를 포함한 태스크가 배포된 것을 알 수 있다.
+    - ALB와 대상 그룹
+        - Service는 ABL와 연동해 외부로부터 접근할 수 있다.
+        - RUNNING 상태가 된 태스크는 ALB가 확인한 헬스 체크 결과가 healthy로 나와야 비로소 트래픽이 전달된다.
+- OUTRO
+    - 도커로 운영 환경을 꾸린다 해도 서버나 클러스터를 계속 신경써야 할 것이다.
+    - 그러나 Fargate를 사용하면 한 번 설정하면 그 이후에는 자동으로 제어된다.
+    - 이는 도커를 적용한 운영 환경을 쾌적하게 해주는 기술이다.
